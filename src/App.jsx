@@ -4,6 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import Upload from "./pages/Upload";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
+import Research from "./pages/Research";
 import Layout from "./components/Layout";
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/upload" element={<Upload />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/research" element={<Research />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>

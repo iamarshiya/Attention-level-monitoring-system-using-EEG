@@ -8,13 +8,15 @@ import {
   Settings as SettingsIcon,
   BrainCircuit,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  FlaskConical
 } from "lucide-react";
 import { cn } from "../utils/cn";
 
 const NAV_ITEMS = [
   { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { name: "Upload Data", path: "/upload", icon: UploadIcon },
+  { name: "Research Lab", path: "/research", icon: FlaskConical },
   { name: "Analytics", path: "/analytics", icon: Activity },
   { name: "Settings", path: "/settings", icon: SettingsIcon },
 ];

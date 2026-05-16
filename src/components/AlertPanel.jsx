@@ -2,38 +2,55 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, Activity, Info, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
 
-export default function AlertPanel() {
+export default function AlertPanel({ streamData }) {
   const [alerts, setAlerts] = useState([
-    { id: 1, type: "info", message: "Calibration complete. Baseline established.", time: "02:14:00" },
-    { id: 2, type: "success", message: "Alpha band locking optimal stability.", time: "02:22:15" },
-    { id: 3, type: "warning", message: "Theta waves elevated. Fatigue detected.", time: "02:35:40" },
+    { id: 1, type: "info", message: "Calibration complete. Baseline established.", time: "00:00:00" },
   ]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const rand = Math.random();
-      if (rand > 0.85) {
-        setAlerts(prev => {
-          const newAlert = {
-            id: Date.now(),
-            type: rand > 0.95 ? "error" : "warning",
-            message: rand > 0.95 ? "Critical attention drop detected (<30)" : "Minor interference in frontal lobe region.",
-            time: new Date().toISOString().substring(11, 19)
-          };
-          return [newAlert, ...prev].slice(0, 4);
-        });
+    if (!streamData || streamData.state === "Waiting") return;
+
+    if (streamData.drop_detected) {
+      // Audio Alert Trigger
+      if (streamData.soundEnabled) {
+         const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+         audio.volume = 0.3;
+         audio.play().catch(() => {});
       }
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
+
+      setAlerts(prev => {
+        const newAlert = {
+          id: Date.now(),
+          type: "error",
+          priority: "CRITICAL",
+          message: `Attention drop! Score: ${Math.round(streamData.score)}. Recommendation: Take a 5min break.`,
+          time: streamData.timestamp
+        };
+        if (prev.length > 0 && prev[0].message === newAlert.message) return prev;
+        return [newAlert, ...prev].slice(0, 4);
+      });
+    } else if (streamData.trend === "increasing" && streamData.score >= 85) {
+      setAlerts(prev => {
+        const newAlert = {
+          id: Date.now(),
+          type: "success",
+          priority: "STABLE",
+          message: `Optimal Beta-band locking. System coherence 94.2%.`,
+          time: streamData.timestamp
+        };
+        if (prev.length > 0 && prev[0].message === newAlert.message) return prev;
+        return [newAlert, ...prev].slice(0, 4);
+      });
+    }
+  }, [streamData]);
 
   return (
     <div className="glass-card p-6 h-full flex flex-col">
       <div className="flex justify-between items-center mb-6">
         <h3 className="font-semibold text-slate-700 flex items-center gap-2">
-          <Activity className="w-5 h-5" /> Subconscious Event Log
+          <Activity className="w-5 h-5" /> Cognitive Event Stream
         </h3>
-        <span className="text-xs font-semibold px-2 py-1 bg-slate-200 rounded-full text-slate-400">Live Stream</span>
+        <span className="text-xs font-semibold px-2 py-1 bg-slate-200 rounded-full text-slate-400">Live Diagnostics</span>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-3 pr-2 scroll-smooth">
@@ -50,17 +67,16 @@ export default function AlertPanel() {
               {alert.type === "error" && <div className="absolute inset-0 bg-danger/10 animate-pulse pointer-events-none" />}
               {alert.type === "warning" && <div className="absolute inset-0 bg-warning/5 animate-pulse pointer-events-none" />}
               
-              <div className="shrink-0 mt-1">
-                {alert.type === "error" && <Zap className="w-5 h-5 text-danger drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" />}
-                {alert.type === "warning" && <AlertCircle className="w-5 h-5 text-warning drop-shadow-[0_0_8px_rgba(234,179,8,0.8)]" />}
-                {alert.type === "info" && <Info className="w-5 h-5 text-primary" />}
-                {alert.type === "success" && <Activity className="w-5 h-5 text-success" />}
-              </div>
               <div className="flex-1">
-                <p className={`text-sm font-medium ${alert.type === 'error' ? 'text-danger font-bold' : 'text-slate-800'}`}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className={`text-[10px] font-black px-1.5 py-0.5 rounded leading-none ${alert.type === 'error' ? 'bg-danger text-white' : 'bg-slate-200 text-slate-500'}`}>
+                    {alert.priority || "LOG"}
+                  </span>
+                  <div className="text-[10px] text-slate-400 font-mono tracking-tighter">{alert.time}</div>
+                </div>
+                <p className={`text-sm font-medium leading-snug ${alert.type === 'error' ? 'text-danger font-bold' : 'text-slate-800'}`}>
                   {alert.message}
                 </p>
-                <div className="text-xs text-slate-400 mt-1 font-mono">{alert.time} • T-01</div>
               </div>
             </motion.div>
           ))}

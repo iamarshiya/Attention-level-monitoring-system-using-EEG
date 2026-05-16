@@ -14,8 +14,9 @@ export default function Landing() {
         </div>
         <div className="flex items-center gap-6">
           <Link to="/dashboard" className="text-sm font-medium hover:text-slate-900 transition-colors">Login</Link>
-          <Link to="/dashboard" className="px-5 py-2 rounded-full bg-primary text-slate-900 font-semibold text-sm hover:bg-primary/90 transition-all shadow-[0_0_15px_rgba(99,102,241,0.5)]">
-            Go to Dashboard
+          <Link to="/dashboard"
+  className="px-5 py-2 rounded-full bg-[#C8B6FF] text-slate-900 font-semibold text-sm hover:bg-[#b9a2ff] transition-all shadow-[0_0_15px_rgba(200,182,255,0.5)]"
+>  Go to Dashboard
           </Link>
         </div>
       </nav>
@@ -46,14 +47,15 @@ export default function Landing() {
             Neurological Analytics 2.0
           </span>
           <h1 className="text-5xl lg:text-7xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-slate-900 via-slate-800 to-slate-500 mb-6 drop-shadow-lg">
-            AI-Powered EEG Attention Monitoring
+            Real-Time EEG-Based Attention Monitoring using Band Power Features and Deep Learning
           </h1>
           <p className="text-lg lg:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
             Real-time cognitive state detection using sophisticated brainwave analysis and machine learning. Elevate performance, safety, and focus.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/dashboard" className="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-primary to-secondary text-slate-900 font-bold text-lg hover:scale-105 transition-all shadow-[0_0_30px_rgba(168,85,247,0.6)] flex items-center justify-center gap-2 group">
+            <Link to="/dashboard"
+              className="w-full sm:w-auto px-8 py-4 rounded-full bg-[#C8B6FF] text-slate-900 font-bold text-lg hover:bg-[#b9a2ff] hover:scale-105 transition-all shadow-[0_0_30px_rgba(200,182,255,0.6)] flex items-center justify-center gap-2 group">
               Start Monitoring
               <MoveRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>

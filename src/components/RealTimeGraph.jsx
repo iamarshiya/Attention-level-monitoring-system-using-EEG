@@ -1,36 +1,79 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 export default function RealTimeGraph({ data }) {
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length && payload[0].value > 0) {
-      return (
-        <div className="glass-card p-3 border border-slate-200 shadow-lg bg-white">
-          <p className="text-slate-500 text-xs mb-1 font-mono">{label}</p>
-          <p className="font-bold text-slate-900 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-primary" />
-            Score: <span className="text-primary">{payload[0].value}</span>
-          </p>
-        </div>
-      );
+  const chartData = {
+    labels: data.map(d => d.time),
+    datasets: [
+      {
+        fill: true,
+        label: 'Attention Score',
+        data: data.map(d => d.attention),
+        borderColor: '#4f46e5',
+        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+        borderWidth: 3,
+        pointRadius: 0,
+        tension: 0.4,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    scales: {
+      x: {
+        display: true,
+        grid: { display: false },
+        ticks: { count: 5, font: { family: 'monospace', size: 10 } }
+      },
+      y: {
+        min: 0,
+        max: 100,
+        grid: { color: 'rgba(15,23,42,0.05)' },
+        ticks: { stepSize: 20, font: { family: 'monospace', size: 10 } }
+      }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#ffffff',
+        titleColor: '#64748b',
+        bodyColor: '#0f172a',
+        borderColor: '#e2e8f0',
+        borderWidth: 1,
+        padding: 12,
+        cornerRadius: 12,
+        displayColors: false,
+      }
     }
-    return null;
   };
 
   return (
     <div className="h-full w-full pb-8">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(15,23,42,0.05)" vertical={false} />
-          <XAxis dataKey="time" stroke="rgba(15,23,42,0.2)" tick={{ fill: 'rgba(15,23,42,0.5)', fontSize: 12, fontFamily: 'monospace' }} tickMargin={10} minTickGap={20} />
-          <YAxis stroke="rgba(15,23,42,0.2)" tick={{ fill: 'rgba(15,23,42,0.5)', fontSize: 12, fontFamily: 'monospace' }} domain={[0, 100]} tickCount={6} tickMargin={10} axisLine={false} />
-          <Tooltip content={<CustomTooltip />} />
-          <Line 
-            type="monotone" dataKey="attention" stroke="#4f46e5" strokeWidth={3} dot={false}
-            activeDot={{ r: 6, fill: "#4f46e5", stroke: "#fff", strokeWidth: 2 }}
-            isAnimationActive={false}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      <Line data={chartData} options={options} />
     </div>
   );
 }
