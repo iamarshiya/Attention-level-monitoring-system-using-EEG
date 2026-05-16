@@ -23,7 +23,7 @@ def bandpower(data, fs, fmin, fmax):
     if not np.any(idx_band): return 0.0
     return float(np.trapz(Pxx[idx_band], f[idx_band]))
 
-dataset_path = '../eeg_attention_dataset.csv'
+dataset_path = 'dataset/eeg_attention_dataset.csv'
 if not os.path.exists(dataset_path):
     print(f"Error: Could not find dataset {dataset_path}")
     exit(1)
