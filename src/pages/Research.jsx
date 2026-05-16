@@ -135,18 +135,18 @@ function ICACard({ comp, idx }) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: idx * 0.08 }}
-      className={`bg-slate-800/60 rounded-xl p-4 border ${colors.border} flex flex-col gap-2`}
+      className={`bg-slate-100 rounded-xl p-4 border ${colors.border} flex flex-col gap-2`}
     >
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">IC{comp.id}</span>
+        <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">IC{comp.id}</span>
         <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${colors.badge}`}>
           {comp.type.toUpperCase()}
         </span>
       </div>
       <div className={`text-sm font-bold ${colors.text}`}>{comp.label}</div>
-      <div className="text-[10px] text-slate-500 font-mono">{comp.lobe} · {comp.dominant_freq}Hz</div>
-      <div className="text-[10px] text-slate-400">{comp.variance_explained}% variance</div>
-      <div className="h-0.5 w-full bg-slate-700 rounded-full overflow-hidden">
+      <div className="text-[10px] text-slate-600 font-mono">{comp.lobe} · {comp.dominant_freq}Hz</div>
+      <div className="text-[10px] text-slate-700">{comp.variance_explained}% variance</div>
+      <div className="h-0.5 w-full bg-slate-100 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full ${isArtifact ? "bg-red-500/60" : "bg-indigo-500/60"}`}
           style={{ width: `${comp.variance_explained}%`, transition: "width 0.5s" }}
@@ -165,9 +165,9 @@ function NeurofeedbackBar({ nf }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <div className="text-xs font-bold text-slate-300">
+        <div className="text-xs font-bold text-slate-800">
           Target: {nf.target_range}
-          <span className="ml-2 font-mono text-[10px] text-slate-500">({nf.protocol})</span>
+          <span className="ml-2 font-mono text-[10px] text-slate-600">({nf.protocol})</span>
         </div>
         <span className={`text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest ${
           inZone ? "bg-emerald-500/20 text-emerald-400" : "bg-orange-500/20 text-orange-400"
@@ -177,7 +177,7 @@ function NeurofeedbackBar({ nf }) {
       </div>
 
       {/* Progress track */}
-      <div className="relative h-8 bg-slate-800 rounded-lg overflow-hidden border border-slate-700">
+      <div className="relative h-8 bg-slate-100 rounded-lg overflow-hidden border border-slate-300">
         {/* Target zone shading */}
         <div className="absolute top-0 bottom-0 bg-emerald-500/10 border-x border-emerald-500/20"
           style={{ left: "60%", width: "20%" }} />
@@ -205,9 +205,9 @@ function NeurofeedbackBar({ nf }) {
           { label: "Inhibits", value: nf.inhibits,  color: "text-red-400"     },
           { label: "Accuracy", value: `${nf.accuracy}%`, color: "text-indigo-400" },
         ].map(s => (
-          <div key={s.label} className="bg-slate-800/60 rounded-lg p-3 text-center border border-slate-700">
+          <div key={s.label} className="bg-slate-100 rounded-lg p-3 text-center border border-slate-300">
             <div className={`text-xl font-black ${s.color}`}>{s.value}</div>
-            <div className="text-[9px] text-slate-500 uppercase tracking-widest">{s.label}</div>
+            <div className="text-[9px] text-slate-600 uppercase tracking-widest">{s.label}</div>
           </div>
         ))}
       </div>
@@ -223,11 +223,11 @@ function LobeBar({ lobe, data }) {
 
   return (
     <div className="flex items-center gap-3">
-      <span className="text-[10px] font-bold text-slate-400 w-20 shrink-0">{lobe}</span>
-      <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+      <span className="text-[10px] font-bold text-slate-700 w-20 shrink-0">{lobe}</span>
+      <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
         <div className="h-full bg-indigo-400/70 rounded-full" style={{ width: `${(alpha / total) * 100}%` }} />
       </div>
-      <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+      <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
         <div className="h-full bg-purple-400/70 rounded-full" style={{ width: `${(beta / total) * 100}%` }} />
       </div>
     </div>
@@ -268,22 +268,22 @@ export default function Research() {
               Research Lab
             </span>
           </h1>
-          <p className="text-slate-500 text-sm mt-1">
+          <p className="text-slate-600 text-sm mt-1">
             ICA · Topology · Neurofeedback · Band Analysis
           </p>
         </div>
-        <div className="flex items-center gap-3 px-4 py-2 bg-slate-900 border border-slate-700 rounded-xl">
+        <div className="flex items-center gap-3 px-4 py-2 bg-white border border-slate-300 rounded-xl">
           <span className={`w-2 h-2 rounded-full ${connected ? "bg-emerald-400 animate-pulse" : "bg-orange-400"}`} />
-          <span className="text-xs font-black text-slate-300 tracking-widest">
+          <span className="text-xs font-black text-slate-800 tracking-widest">
             {connected ? "RESEARCH WSS LIVE" : "CONNECTING..."}
           </span>
         </div>
       </div>
 
       {!live && (
-        <div className="bg-slate-900/60 border border-slate-700 rounded-2xl p-12 text-center">
+        <div className="bg-white border border-slate-300 rounded-2xl p-12 text-center">
           <Brain className="w-12 h-12 text-indigo-400 mx-auto mb-4 animate-pulse" />
-          <p className="text-slate-400 font-medium">Upload <span className="font-mono text-indigo-400">features_raw.csv</span> then switch to <b>Dashboard</b> stream to begin research analysis.</p>
+          <p className="text-slate-700 font-medium">Upload <span className="font-mono text-indigo-400">features_raw.csv</span> then switch to <b>Dashboard</b> stream to begin research analysis.</p>
         </div>
       )}
 
@@ -291,9 +291,9 @@ export default function Research() {
         <div className="grid lg:grid-cols-2 gap-6">
 
           {/* ── Scalp Topology Panel ─────────────────────────────── */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-slate-200 flex items-center gap-2">
+              <h3 className="font-bold text-slate-900 flex items-center gap-2">
                 <Activity className="w-4 h-4 text-indigo-400" />
                 Scalp Topography
               </h3>
@@ -310,7 +310,7 @@ export default function Research() {
 
               {/* Channel Quality List */}
               <div className="flex-1 space-y-2 max-h-[320px] overflow-y-auto pr-1">
-                <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3">Channel Quality</div>
+                <div className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-3">Channel Quality</div>
                 <AnimatePresence>
                   {live.topology?.slice(0, 12).map((ch, i) => (
                     <motion.div
@@ -318,11 +318,12 @@ export default function Research() {
                       initial={{ opacity: 0, x: 10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.03 }}
-                      className={`flex items-center gap-2 cursor-pointer px-2 py-1.5 rounded-lg transition-colors ${activeChannel === ch.channel ? "bg-slate-800" : "hover:bg-slate-800/50"}`}
+                      className={`flex items-center gap-2 cursor-pointer px-2 py-1.5 rounded-lg transition-colors ${activeChannel === ch.channel ? "bg-slate-100" : "hover:bg-slate-100/50"}`}
                       onMouseEnter={() => setActiveChannel(ch.channel)}
                     >
-                      <span className="text-xs font-bold text-slate-300 w-8">{ch.channel}</span>
-                      <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                      {/* Updated typography label to pure black */}
+                      <span className="text-xs font-bold text-black w-8">{ch.channel}</span>
+                      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                         <motion.div
                           className={`h-full rounded-full ${ch.quality === "bad" ? "bg-red-500" : ch.quality === "warn" ? "bg-amber-400" : "bg-emerald-400"}`}
                           initial={{ width: 0 }}
@@ -330,7 +331,7 @@ export default function Research() {
                           transition={{ duration: 0.5 }}
                         />
                       </div>
-                      <span className="text-[10px] font-mono text-slate-400 w-10 text-right">{ch.impedance}kΩ</span>
+                      <span className="text-[10px] font-mono text-slate-700 w-10 text-right">{ch.impedance}kΩ</span>
                       <span className={`w-2 h-2 rounded-full shrink-0 ${ch.quality === "bad" ? "bg-red-500" : ch.quality === "warn" ? "bg-amber-400" : "bg-emerald-400"}`} />
                     </motion.div>
                   ))}
@@ -345,19 +346,19 @@ export default function Research() {
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className="mt-4 p-3 bg-slate-800/60 rounded-xl border border-slate-700 grid grid-cols-3 gap-3"
+                  className="mt-4 p-3 bg-slate-100 rounded-xl border border-slate-300 grid grid-cols-3 gap-3"
                 >
                   <div className="text-center">
                     <div className="text-[10px] text-indigo-300 font-bold uppercase">Alpha</div>
-                    <div className="text-sm font-black text-slate-200">{hovered.alpha?.toFixed(3)}</div>
+                    <div className="text-sm font-black text-slate-900">{hovered.alpha?.toFixed(3)}</div>
                   </div>
                   <div className="text-center">
                     <div className="text-[10px] text-purple-300 font-bold uppercase">Beta</div>
-                    <div className="text-sm font-black text-slate-200">{hovered.beta?.toFixed(3)}</div>
+                    <div className="text-sm font-black text-slate-900">{hovered.beta?.toFixed(3)}</div>
                   </div>
                   <div className="text-center">
                     <div className="text-[10px] text-cyan-300 font-bold uppercase">Theta</div>
-                    <div className="text-sm font-black text-slate-200">{hovered.theta?.toFixed(3)}</div>
+                    <div className="text-sm font-black text-slate-900">{hovered.theta?.toFixed(3)}</div>
                   </div>
                 </motion.div>
               )}
@@ -365,9 +366,9 @@ export default function Research() {
           </div>
 
           {/* ── ICA Components Panel ──────────────────────────────── */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-slate-200 flex items-center gap-2">
+              <h3 className="font-bold text-slate-900 flex items-center gap-2">
                 <Layers className="w-4 h-4 text-purple-400" />
                 ICA Components
               </h3>
@@ -383,8 +384,8 @@ export default function Research() {
             </div>
 
             {/* Neurofeedback Protocol */}
-            <div className="border-t border-slate-800 pt-4">
-              <h4 className="text-xs font-bold text-slate-300 flex items-center gap-2 mb-3">
+            <div className="border-t border-slate-200 pt-4">
+              <h4 className="text-xs font-bold text-slate-800 flex items-center gap-2 mb-3">
                 <Zap className="w-3.5 h-3.5 text-amber-400" />
                 Neurofeedback Protocol
               </h4>
@@ -400,12 +401,12 @@ export default function Research() {
         <div className="grid lg:grid-cols-2 gap-6">
 
           {/* Lobe Summary */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h3 className="font-bold text-slate-200 flex items-center gap-2 mb-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6">
+            <h3 className="font-bold text-slate-900 flex items-center gap-2 mb-4">
               <Cpu className="w-4 h-4 text-cyan-400" />
               Lobe Activation Map
             </h3>
-            <div className="flex gap-4 text-[9px] text-slate-500 mb-3 font-bold uppercase tracking-widest">
+            <div className="flex gap-4 text-[9px] text-slate-600 mb-3 font-bold uppercase tracking-widest">
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-indigo-400 inline-block" />Alpha</span>
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-400 inline-block" />Beta</span>
             </div>
@@ -416,15 +417,15 @@ export default function Research() {
             </div>
 
             {/* Global Indices */}
-            <div className="mt-5 pt-4 border-t border-slate-800 grid grid-cols-2 gap-3">
+            <div className="mt-5 pt-4 border-t border-slate-200 grid grid-cols-2 gap-3">
               {[
                 { label: "Attention Index",  val: live.global_indices?.attention_index,   color: "text-indigo-400" },
                 { label: "Theta/Beta Ratio", val: live.global_indices?.theta_beta_ratio,  color: "text-red-400"    },
                 { label: "Engagement",       val: live.global_indices?.engagement_index,  color: "text-emerald-400" },
                 { label: "Frontal Asym.",    val: live.global_indices?.frontal_alpha_asymmetry, color: "text-amber-400" },
               ].map(m => (
-                <div key={m.label} className="bg-slate-800/40 rounded-xl p-3 border border-slate-700">
-                  <div className="text-[9px] text-slate-500 uppercase tracking-widest mb-1">{m.label}</div>
+                <div key={m.label} className="bg-slate-50 rounded-xl p-3 border border-slate-300">
+                  <div className="text-[9px] text-slate-600 uppercase tracking-widest mb-1">{m.label}</div>
                   <div className={`text-lg font-black ${m.color}`}>{(m.val ?? 0).toFixed(3)}</div>
                 </div>
               ))}
@@ -432,15 +433,15 @@ export default function Research() {
           </div>
 
           {/* Research Report */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <h3 className="font-bold text-slate-200 flex items-center gap-2 mb-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6">
+            <h3 className="font-bold text-slate-900 flex items-center gap-2 mb-4">
               <Brain className="w-4 h-4 text-emerald-400" />
               Research Report
             </h3>
             {live.research_report && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-black text-slate-200">
+                  <span className="text-sm font-black text-slate-900">
                     {live.research_report.cognitive_state}
                   </span>
                   <span className="text-2xl font-black text-emerald-400">
@@ -448,24 +449,24 @@ export default function Research() {
                   </span>
                 </div>
 
-                <p className="text-sm text-slate-400 leading-relaxed bg-slate-800/40 p-3 rounded-xl border border-slate-700">
+                <p className="text-sm text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-300">
                   {live.research_report.clinical_note}
                 </p>
 
                 {/* TBR + FAA */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-slate-800/40 rounded-xl p-3 border border-slate-700">
-                    <div className="text-[9px] text-slate-500 uppercase tracking-widest">Theta/Beta Ratio</div>
-                    <div className="text-base font-black text-slate-200 mt-1">
+                  <div className="bg-slate-50 rounded-xl p-3 border border-slate-300">
+                    <div className="text-[9px] text-slate-600 uppercase tracking-widest">Theta/Beta Ratio</div>
+                    <div className="text-base font-black text-slate-900 mt-1">
                       {live.research_report.theta_beta_ratio?.value?.toFixed(3)}
                     </div>
                     <div className="text-[10px] text-amber-400 mt-0.5">
                       {live.research_report.theta_beta_ratio?.clinical_significance}
                     </div>
                   </div>
-                  <div className="bg-slate-800/40 rounded-xl p-3 border border-slate-700">
-                    <div className="text-[9px] text-slate-500 uppercase tracking-widest">Frontal Asymmetry</div>
-                    <div className="text-base font-black text-slate-200 mt-1">
+                  <div className="bg-slate-50 rounded-xl p-3 border border-slate-300">
+                    <div className="text-[9px] text-slate-600 uppercase tracking-widest">Frontal Asymmetry</div>
+                    <div className="text-base font-black text-slate-900 mt-1">
                       {live.research_report.frontal_alpha_asymmetry?.value?.toFixed(3)}
                     </div>
                     <div className="text-[10px] text-cyan-400 mt-0.5">
@@ -475,14 +476,14 @@ export default function Research() {
                 </div>
 
                 {/* ICA Summary */}
-                <div className="bg-slate-800/40 rounded-xl p-3 border border-slate-700">
-                  <div className="text-[9px] text-slate-500 uppercase tracking-widest mb-2">ICA Artifact Summary</div>
+                <div className="bg-slate-50 rounded-xl p-3 border border-slate-300">
+                  <div className="text-[9px] text-slate-600 uppercase tracking-widest mb-2">ICA Artifact Summary</div>
                   <div className="flex flex-wrap gap-2">
                     {live.research_report.ica_summary?.artifacts_detected?.map(a => (
-                      <span key={a} className="text-[10px] px-2 py-0.5 bg-red-500/20 text-red-400 rounded font-bold">{a}</span>
+                      <span key={a} className="text-[10px] px-2 py-0.5 bg-red-50/20 text-red-400 rounded font-bold">{a}</span>
                     ))}
                     {live.research_report.ica_summary?.neural_components?.map(a => (
-                      <span key={a} className="text-[10px] px-2 py-0.5 bg-indigo-500/20 text-indigo-400 rounded font-bold">{a}</span>
+                      <span key={a} className="text-[10px] px-2 py-0.5 bg-indigo-50/20 text-indigo-400 rounded font-bold">{a}</span>
                     ))}
                   </div>
                 </div>

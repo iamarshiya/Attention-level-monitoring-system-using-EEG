@@ -32,20 +32,33 @@ export default function Sidebar() {
       className="glass-card flex flex-col h-full m-4 mr-0 z-20 border-r border-slate-100"
     >
       <div className="flex z-10 items-center justify-between p-6">
-        {!collapsed && (
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            className="flex items-center gap-3 text-slate-900 font-semibold text-lg"
-          >
-            <BrainCircuit className="text-primary w-7 h-7 drop-shadow-[0_0_10px_rgba(99,102,241,0.8)]" />
-            <span>NerveNet</span>
-          </motion.div>
-        )}
-        {collapsed && (
-          <BrainCircuit className="text-primary w-7 h-7 mx-auto drop-shadow-[0_0_10px_rgba(99,102,241,0.8)]" />
-        )}
-      </div>
+  {!collapsed && (
+    <Link to="/dashboard" className="w-full">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.97 }}
+        className="flex items-center gap-3 text-slate-900 font-semibold text-lg cursor-pointer"
+      >
+        <BrainCircuit className="text-primary w-7 h-7 drop-shadow-[0_0_10px_rgba(99,102,241,0.8)]" />
+        <span>NerveNet</span>
+      </motion.div>
+    </Link>
+  )}
+
+  {collapsed && (
+    <Link to="/dashboard" className="mx-auto">
+      <motion.div
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.95 }}
+        className="cursor-pointer"
+      >
+        <BrainCircuit className="text-primary w-7 h-7 drop-shadow-[0_0_10px_rgba(99,102,241,0.8)]" />
+      </motion.div>
+    </Link>
+  )}
+</div>
 
       <nav className="flex-1 px-4 mt-6 z-10 flex flex-col gap-2">
         {NAV_ITEMS.map((item) => {
