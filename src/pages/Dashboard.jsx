@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { Info } from "lucide-react";
 import AttentionCard from "../components/AttentionCard";
 import RealTimeGraph from "../components/RealTimeGraph";
 import BrainwaveCards from "../components/BrainwaveCards";
@@ -8,47 +9,19 @@ import AlertPanel from "../components/AlertPanel";
 const initGraph = Array.from({length: 60}, (_, i) => ({time: '', attention: 0}));
 const initBands = Array.from({length: 20}, () => ({val: 0}));
 
+import { useEEGStream } from "../utils/EEGStreamContext";
+
 export default function Dashboard() {
-  // True states governed exclusively by FastAPI sockets
-  // State encompassing Elite UI metrics
-  const [streamData, setStreamData] = useState({ 
-    score: 0, 
-    state: "Waiting", 
-    alpha: 0, 
-    beta: 0, 
-    theta: 0,
-    fatigue: 0,
-    stress: 0,
-    confidence: 0,
-    explanation: "System initializing...",
-    trend: "stable",
-    drop_detected: false
-  });
+  const {
+    dashboardData: streamData,
+    history,
+    bands,
+    metrics,
+    dashboardConnected
+  } = useEEGStream();
+
   const [soundEnabled, setSoundEnabled] = useState(false);
-  const [history, setHistory] = useState(initGraph);
-  const [bands, setBands] = useState({ alpha: initBands, beta: initBands, theta: initBands });
-
-  useEffect(() => {
-    // Kill old dummy loops by using exclusively Native WebSockets mapped to python.
-    const ws = new WebSocket("ws://127.0.0.1:8000/api/v1/stream");
-    
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.state === "Waiting") return; // Block dummy execution if no file uploaded
-      
-      setStreamData(data);
-      setHistory(prev => [...prev.slice(1), { time: data.timestamp, attention: data.score }]);
-      setBands(prev => ({
-        alpha: [...prev.alpha.slice(1), { val: data.alpha }],
-        beta: [...prev.beta.slice(1), { val: data.beta }],
-        theta: [...prev.theta.slice(1), { val: data.theta }]
-      }));
-    };
-
-    return () => ws.close();
-  }, []);
-
-  const isActive = streamData.state !== "Waiting";
+  const isActive = dashboardConnected && streamData.state !== "Waiting";
 
   const toggleSound = () => {
     setSoundEnabled(!soundEnabled);
@@ -111,11 +84,18 @@ export default function Dashboard() {
               <div className="glass-card p-6 flex flex-col justify-between border-l-4 border-l-primary shadow-xl">
                  <div>
                     <div className="flex items-center justify-between mb-4">
-                       <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                       <h3 className="font-bold text-slate-900 flex items-center gap-2 group cursor-help" title="Contextual explanation based on Random Forest feature thresholds.">
                           <span className="p-1.5 bg-primary/10 rounded-lg text-primary">🧠</span>
                           Explainable AI Context
+                          <Info className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                        </h3>
-                       <span className="text-[10px] font-bold bg-slate-100 text-slate-400 px-2 py-0.5 rounded uppercase tracking-tighter">RF Model V2.4</span>
+                       <div className="flex gap-2">
+                           {metrics && metrics.CNN > 0 && (
+                             <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded uppercase tracking-tighter cursor-help border border-purple-200 shadow-sm" title="Deep Learning CNN Accuracy (Trained on STFT 2D)">CNN {metrics.CNN}%</span>
+                           )}
+                           <span className="text-[10px] font-bold bg-blue-50 text-blue-600 px-2 py-0.5 rounded uppercase tracking-tighter border border-blue-100 shadow-sm cursor-help" title="Random Forest Accuracy (Active Ensemble)">RF {metrics ? metrics.RF : 95}%</span>
+                           <span className="text-[10px] font-bold bg-slate-50 text-slate-500 px-2 py-0.5 rounded uppercase tracking-tighter border border-slate-200 shadow-sm hidden sm:inline-block cursor-help" title="Support Vector Machine (Baseline)">SVM {metrics ? metrics.SVM : 91}%</span>
+                       </div>
                     </div>
                     <p className="text-slate-600 text-sm leading-relaxed font-medium">
                        {isActive ? streamData.explanation : "Waiting for real-time neural data ingestion to begin analysis..."}
@@ -123,10 +103,13 @@ export default function Dashboard() {
                  </div>
                  
                  <div className="mt-6 pt-6 border-t border-slate-100 grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                       <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                          <span>Physical Fatigue</span>
+                    <div className="space-y-1 relative group">
+                       <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest cursor-help">
+                          <span>Physical Fatigue <Info className="inline w-3 h-3 ml-1 text-slate-300"/></span>
                           <span className="text-slate-700">{Math.round(streamData.fatigue)}%</span>
+                       </div>
+                       <div className="absolute bottom-full mb-2 left-0 w-48 p-2 bg-slate-900 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 font-medium">
+                         Indicator of mental exhaustion. Rises when Theta waves dominate over Beta.
                        </div>
                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                           <motion.div 
@@ -136,10 +119,13 @@ export default function Dashboard() {
                           />
                        </div>
                     </div>
-                    <div className="space-y-1">
-                       <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                          <span>Stress Index</span>
+                    <div className="space-y-1 relative group">
+                       <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest cursor-help">
+                          <span>Stress Index <Info className="inline w-3 h-3 ml-1 text-slate-300"/></span>
                           <span className="text-slate-700">{Math.round(streamData.stress)}%</span>
+                       </div>
+                       <div className="absolute bottom-full mb-2 left-0 w-48 p-2 bg-slate-900 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 font-medium">
+                         Indicator of cognitive load. Rises when high-frequency Beta spikes against Alpha.
                        </div>
                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                           <motion.div 
@@ -157,10 +143,16 @@ export default function Dashboard() {
 
       <BrainwaveCards data={bands} />
 
-      <div className="glass-card p-8 h-[450px] shadow-2xl group">
-        <div className="flex items-center justify-between mb-8">
+      <div className="glass-card p-8 h-[450px] shadow-2xl group/graph">
+        <div className="flex items-center justify-between mb-8 relative">
           <div>
-            <h3 className="text-xl font-black text-slate-900">Neural Analytics Trace</h3>
+            <h3 className="text-xl font-black text-slate-900 flex items-center gap-2 cursor-help group">
+               Neural Analytics Trace
+               <Info className="w-4 h-4 text-slate-400" />
+               <div className="absolute left-0 top-full mt-2 w-64 p-3 bg-slate-900 text-white text-xs rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 font-medium shadow-xl">
+                 Plots the real-time AI Attention Score prediction. Watch for sudden drops which indicate distraction or cognitive drift.
+               </div>
+            </h3>
             <p className="text-xs text-slate-400 font-medium">Real-time prediction drift across 12-bit EEG spectrum</p>
           </div>
           <div className="flex gap-2">

@@ -37,9 +37,11 @@ class Preprocessor:
         return (data - mean) / std
 
     def process_pipeline(self, raw_data: np.ndarray) -> np.ndarray:
-        """Runs the whole pipeline sequentially: filter -> normalize."""
+        """Runs the whole pipeline: filter only (NO z-score normalization).
+        Z-score kills bandpower magnitudes — the EEG signal must retain its
+        physical amplitude so Welch PSD gives meaningful µV²/Hz values.
+        """
         filtered = self.apply_bandpass(raw_data)
-        normalized = self.normalize(filtered)
-        return normalized
+        return filtered
 
 preprocessor = Preprocessor()

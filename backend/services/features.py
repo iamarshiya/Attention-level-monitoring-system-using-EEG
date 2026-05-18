@@ -58,4 +58,25 @@ class FeatureExtractor:
                 "theta_beta_ratio": 0.0
             }
 
+    def extract_stft2d(self, data: np.ndarray) -> np.ndarray:
+        """
+        Computes the Short-Time Fourier Transform (STFT) for the given signal window.
+        Converts 1D EEG data into a 2D Spectrogram image (Time vs Frequency vs Power)
+        to be used as input for 2D Convolutional Neural Networks (CNNs).
+        """
+        try:
+            from scipy.signal import stft
+            import cv2
+            f, t, Zxx = stft(data, fs=self.fs, nperseg=64, noverlap=32)
+            # Take the absolute magnitude (power) of the complex numbers
+            spectrogram_2d = np.abs(Zxx)
+            # Resize to match CNN input shape (64, 64)
+            spectrogram_2d = cv2.resize(spectrogram_2d, (64, 64))
+            # Expand dimensions to match standard CNN input shape (Height, Width, Channels)
+            spectrogram_2d = np.expand_dims(spectrogram_2d, axis=-1)
+            return spectrogram_2d
+        except Exception as e:
+            logger.error(f"Error computing STFT 2D array: {str(e)}")
+            return np.zeros((64, 64, 1)) # Default fallback shape
+
 feature_extractor = FeatureExtractor()

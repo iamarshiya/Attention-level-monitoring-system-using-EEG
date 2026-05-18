@@ -153,10 +153,11 @@ async def research_websocket_stream(websocket: WebSocket):
                             "x":          t["x"],
                             "y":          t["y"],
                             "impedance":  t["impedance"],
-                            "quality":    t["quality"],
+                            "delta":      round(t["delta_power"], 3),
+                            "theta":      round(t["theta_power"], 3),
                             "alpha":      round(t["alpha_power"], 3),
                             "beta":       round(t["beta_power"],  3),
-                            "theta":      round(t["theta_power"], 3),
+                            "gamma":      round(t["gamma_power"], 3),
                             "power_norm": t["power_norm"],
                         }
                         for t in multichannel.get("topology", [])
@@ -176,11 +177,18 @@ async def research_websocket_stream(websocket: WebSocket):
                     await websocket.send_text(json.dumps(payload))
 
                 except Exception as e:
+                    import traceback
+                    traceback.print_exc()
                     logger.error(f"Research stream error: {e}")
-                    await websocket.send_text(json.dumps({
-                        "type": "error",
-                        "detail": str(e)
-                    }))
+                    if "Cannot call" in str(e) or "close message" in str(e):
+                        break
+                    try:
+                        await websocket.send_text(json.dumps({
+                            "type": "error",
+                            "detail": str(e)
+                        }))
+                    except Exception:
+                        break
 
                 await asyncio.sleep(2.0)  # Research analysis is heavier — 2s cycle
 

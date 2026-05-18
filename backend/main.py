@@ -37,6 +37,18 @@ async def health_check():
     """Returns the operational status of the neuroscience backend."""
     return {"status": "ok", "service": settings.PROJECT_NAME, "db_connected": db_instance.client is not None}
 
+@app.get("/api/v1/metrics", tags=["System"])
+async def get_metrics():
+    import os, json
+    try:
+        path = os.path.join(os.path.dirname(__file__), 'models', 'model_metrics.json')
+        if os.path.exists(path):
+            with open(path, 'r') as f:
+                return json.load(f)
+        return {"SVM": 0, "RF": 0, "CNN": 0}
+    except Exception:
+        return {"SVM": 0, "RF": 0, "CNN": 0}
+
 # Include routers
 app.include_router(upload.router, prefix="/api/v1", tags=["Data Ingestion"])
 app.include_router(predict.router, prefix="/api/v1", tags=["Inference"])

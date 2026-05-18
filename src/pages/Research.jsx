@@ -2,7 +2,8 @@ import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Activity, Cpu, Layers, Brain, Zap } from "lucide-react";
 
-const WS_URL = "ws://127.0.0.1:8000/api/v1/research/stream";
+
+
 
 // ── 10-20 scalp head geometry constants ──────────────────────────
 const CANVAS_R = 140;         // radius of scalp circle
@@ -83,20 +84,23 @@ function ScalpCanvas({ topology, activeChannel, onHover }) {
       }
 
       // Channel dot
-      const r = isBad ? 9 : 7;
+      const isOffline = ch.quality === "offline";
+      const r = isBad ? 9 : (isOffline ? 4 : 7);
       ctx.beginPath();
       ctx.arc(px, py, r, 0, Math.PI * 2);
-      ctx.fillStyle = isBad ? "rgba(239,68,68,0.85)" : powerToColor(norm);
+      ctx.fillStyle = isBad ? "rgba(239,68,68,0.85)" : (isOffline ? "rgba(203,213,225,0.8)" : powerToColor(norm));
       ctx.fill();
       ctx.strokeStyle = isActive ? "#a855f7" : "rgba(255,255,255,0.2)";
       ctx.lineWidth = isActive ? 2 : 1;
       ctx.stroke();
 
       // Label
-      ctx.font = `bold ${isActive ? 9 : 8}px monospace`;
-      ctx.fillStyle = isActive ? "#e2e8f0" : "rgba(226,232,240,0.7)";
-      ctx.textAlign = "center";
-      ctx.fillText(ch.channel, px, py - r - 2);
+      if (ch.channel !== "Computed_Attention_Score" && ch.channel !== "attention_score") {
+          ctx.font = `bold ${isActive ? 10 : 9}px monospace`;
+          ctx.fillStyle = isActive ? "#000000" : "rgba(71,85,105,0.8)";
+          ctx.textAlign = "center";
+          ctx.fillText(ch.channel, px, py - r - 2);
+      }
     });
   }, [topology, activeChannel]);
 
@@ -127,34 +131,51 @@ function ScalpCanvas({ topology, activeChannel, onHover }) {
 function ICACard({ comp, idx }) {
   const isArtifact = comp.type === "Artifact";
   const colors = isArtifact
-    ? { border: "border-red-500/30", badge: "bg-red-500/20 text-red-400", text: "text-red-400" }
-    : { border: "border-indigo-500/30", badge: "bg-indigo-500/20 text-indigo-400", text: "text-indigo-400" };
+    ? { border: "border-red-500/30", badge: "bg-red-500/20 text-red-400", text: "text-red-400", bar: "bg-red-500/60" }
+    : { border: "border-indigo-500/30", badge: "bg-indigo-500/20 text-indigo-400", text: "text-indigo-400", bar: "bg-indigo-500/60" };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: idx * 0.08 }}
-      className={`bg-slate-100 rounded-xl p-4 border ${colors.border} flex flex-col gap-2`}
+      className={`bg-white rounded-xl p-4 border ${colors.border} flex flex-col gap-2 relative group cursor-help`}
     >
+      {/* Tooltip */}
+      {comp.description && (
+        <div className="absolute bottom-full left-0 mb-2 w-72 p-3 bg-slate-900 text-white text-[10px] leading-relaxed rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl font-medium">
+          <div className={`text-[9px] font-black uppercase tracking-widest mb-1 ${isArtifact ? "text-red-400" : "text-indigo-400"}`}>
+            {comp.label} — {comp.type}
+          </div>
+          {comp.description}
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">IC{comp.id}</span>
+        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">IC{comp.id}</span>
         <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${colors.badge}`}>
           {comp.type.toUpperCase()}
         </span>
       </div>
       <div className={`text-sm font-bold ${colors.text}`}>{comp.label}</div>
-      <div className="text-[10px] text-slate-600 font-mono">{comp.lobe} · {comp.dominant_freq}Hz</div>
-      <div className="text-[10px] text-slate-700">{comp.variance_explained}% variance</div>
-      <div className="h-0.5 w-full bg-slate-100 rounded-full overflow-hidden">
+      <div className="text-[10px] text-slate-500 font-mono">{comp.lobe} · {comp.dominant_freq} Hz</div>
+      <div className="text-[10px] text-slate-600">
+        Channels: <span className="font-mono font-semibold">{(comp.top_channels || []).join(", ")}</span>
+      </div>
+      <div className="flex items-center justify-between text-[10px] text-slate-500">
+        <span>{comp.variance_explained}% variance</span>
+        <span className="text-[9px] opacity-60">hover for info</span>
+      </div>
+      <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full ${isArtifact ? "bg-red-500/60" : "bg-indigo-500/60"}`}
+          className={`h-full rounded-full ${colors.bar}`}
           style={{ width: `${comp.variance_explained}%`, transition: "width 0.5s" }}
         />
       </div>
     </motion.div>
   );
 }
+
 
 // ── Neurofeedback Bar ─────────────────────────────────────────────
 function NeurofeedbackBar({ nf }) {
@@ -201,13 +222,16 @@ function NeurofeedbackBar({ nf }) {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: "Rewards",  value: nf.rewards,   color: "text-emerald-400" },
-          { label: "Inhibits", value: nf.inhibits,  color: "text-red-400"     },
-          { label: "Accuracy", value: `${nf.accuracy}%`, color: "text-indigo-400" },
+          { label: "Rewards",  value: nf.rewards,   color: "text-emerald-400", desc: "Points earned for sustaining target brainwaves." },
+          { label: "Inhibits", value: nf.inhibits,  color: "text-red-400", desc: "Penalties for spiking distracting brainwaves." },
+          { label: "Accuracy", value: `${nf.accuracy}%`, color: "text-indigo-400", desc: "Overall success rate in this session." },
         ].map(s => (
-          <div key={s.label} className="bg-slate-100 rounded-lg p-3 text-center border border-slate-300">
+          <div key={s.label} className="bg-slate-100 rounded-lg p-3 text-center border border-slate-300 relative group cursor-help">
             <div className={`text-xl font-black ${s.color}`}>{s.value}</div>
             <div className="text-[9px] text-slate-600 uppercase tracking-widest">{s.label}</div>
+            <div className="absolute left-0 bottom-full mb-2 w-48 p-2 bg-slate-900 text-white text-[10px] leading-tight rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl font-medium">
+              {s.desc}
+            </div>
           </div>
         ))}
       </div>
@@ -235,21 +259,15 @@ function LobeBar({ lobe, data }) {
 }
 
 // ── Main Page ─────────────────────────────────────────────────────
-export default function Research() {
-  const [live, setLive]               = useState(null);
-  const [activeChannel, setActiveChannel] = useState(null);
-  const [connected, setConnected]     = useState(false);
+import { useEEGStream } from "../utils/EEGStreamContext";
 
-  useEffect(() => {
-    const ws = new WebSocket(WS_URL);
-    ws.onopen  = () => setConnected(true);
-    ws.onclose = () => setConnected(false);
-    ws.onmessage = (e) => {
-      const d = JSON.parse(e.data);
-      if (d.type === "research") setLive(d);
-    };
-    return () => ws.close();
-  }, []);
+export default function Research() {
+  const {
+    researchData: live,
+    researchConnected: connected
+  } = useEEGStream();
+
+  const [activeChannel, setActiveChannel] = useState(null);
 
   const hovered = live?.topology?.find(t => t.channel === activeChannel);
 
@@ -293,9 +311,12 @@ export default function Research() {
           {/* ── Scalp Topology Panel ─────────────────────────────── */}
           <div className="bg-white border border-slate-200 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="font-bold text-slate-900 flex items-center gap-2 group cursor-help relative">
                 <Activity className="w-4 h-4 text-indigo-400" />
                 Scalp Topography
+                <div className="absolute left-0 top-full mt-2 w-64 p-3 bg-slate-900 text-white text-[10px] font-medium leading-tight rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+                  Maps real-time EEG band power across the 10-20 neural scalp layout. Red indicates bad channel impedance, while glowing channels indicate current focus.
+                </div>
               </h3>
               <span className="text-[10px] font-black bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded">10-20 SYSTEM</span>
             </div>
@@ -312,7 +333,7 @@ export default function Research() {
               <div className="flex-1 space-y-2 max-h-[320px] overflow-y-auto pr-1">
                 <div className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-3">Channel Quality</div>
                 <AnimatePresence>
-                  {live.topology?.slice(0, 12).map((ch, i) => (
+                  {live.topology?.filter(ch => ch.quality !== "offline").slice(0, 12).map((ch, i) => (
                     <motion.div
                       key={ch.channel}
                       initial={{ opacity: 0, x: 10 }}
@@ -346,19 +367,42 @@ export default function Research() {
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className="mt-4 p-3 bg-slate-100 rounded-xl border border-slate-300 grid grid-cols-3 gap-3"
+                  className="mt-4 p-3 bg-slate-100 rounded-xl border border-slate-300 grid grid-cols-5 gap-2"
                 >
-                  <div className="text-center">
-                    <div className="text-[10px] text-indigo-300 font-bold uppercase">Alpha</div>
-                    <div className="text-sm font-black text-slate-900">{hovered.alpha?.toFixed(3)}</div>
+                  <div className="text-center relative group cursor-help">
+                    <div className="text-[9px] text-pink-400 font-bold uppercase">Delta</div>
+                    <div className="text-sm font-black text-slate-900">{hovered.delta?.toFixed(3) ?? "0.000"}</div>
+                    <div className="absolute left-0 bottom-full mb-2 w-32 p-2 bg-slate-900 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 font-medium shadow-xl">
+                      Deep sleep power.
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-[10px] text-purple-300 font-bold uppercase">Beta</div>
-                    <div className="text-sm font-black text-slate-900">{hovered.beta?.toFixed(3)}</div>
+                  <div className="text-center relative group cursor-help">
+                    <div className="text-[9px] text-cyan-400 font-bold uppercase">Theta</div>
+                    <div className="text-sm font-black text-slate-900">{hovered.theta?.toFixed(3) ?? "0.000"}</div>
+                    <div className="absolute left-0 bottom-full mb-2 w-32 p-2 bg-slate-900 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 font-medium shadow-xl">
+                      Drowsy / Distracted power.
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-[10px] text-cyan-300 font-bold uppercase">Theta</div>
-                    <div className="text-sm font-black text-slate-900">{hovered.theta?.toFixed(3)}</div>
+                  <div className="text-center relative group cursor-help">
+                    <div className="text-[9px] text-indigo-400 font-bold uppercase">Alpha</div>
+                    <div className="text-sm font-black text-slate-900">{hovered.alpha?.toFixed(3) ?? "0.000"}</div>
+                    <div className="absolute left-0 bottom-full mb-2 w-32 p-2 bg-slate-900 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 font-medium shadow-xl">
+                      Relaxed state power.
+                    </div>
+                  </div>
+                  <div className="text-center relative group cursor-help">
+                    <div className="text-[9px] text-purple-400 font-bold uppercase">Beta</div>
+                    <div className="text-sm font-black text-slate-900">{hovered.beta?.toFixed(3) ?? "0.000"}</div>
+                    <div className="absolute left-0 bottom-full mb-2 w-32 p-2 bg-slate-900 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 font-medium shadow-xl">
+                      Active focus power.
+                    </div>
+                  </div>
+                  <div className="text-center relative group cursor-help">
+                    <div className="text-[9px] text-emerald-400 font-bold uppercase">Gamma</div>
+                    <div className="text-sm font-black text-slate-900">{hovered.gamma?.toFixed(3) ?? "0.000"}</div>
+                    <div className="absolute right-0 bottom-full mb-2 w-32 p-2 bg-slate-900 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 font-medium shadow-xl">
+                      High cognitive power.
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -368,9 +412,12 @@ export default function Research() {
           {/* ── ICA Components Panel ──────────────────────────────── */}
           <div className="bg-white border border-slate-200 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="font-bold text-slate-900 flex items-center gap-2 group cursor-help relative">
                 <Layers className="w-4 h-4 text-purple-400" />
                 ICA Components
+                <div className="absolute left-0 top-full mt-2 w-64 p-3 bg-slate-900 text-white text-[10px] font-medium leading-tight rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+                  Independent Component Analysis splits raw EEG into separate sources. Identifies clean neural activity vs artifacts like eye-blinks or muscle movement.
+                </div>
               </h3>
               <span className="text-[10px] font-black bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded">
                 {live.ica?.status ?? "ANALYZING"}
@@ -385,9 +432,12 @@ export default function Research() {
 
             {/* Neurofeedback Protocol */}
             <div className="border-t border-slate-200 pt-4">
-              <h4 className="text-xs font-bold text-slate-800 flex items-center gap-2 mb-3">
+              <h4 className="text-xs font-bold text-slate-800 flex items-center gap-2 mb-3 group cursor-help relative w-fit">
                 <Zap className="w-3.5 h-3.5 text-amber-400" />
                 Neurofeedback Protocol
+                <div className="absolute left-0 top-full mt-2 w-64 p-3 bg-slate-900 text-white text-[10px] font-medium leading-tight rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+                  Live scoring of brain state training. Evaluates if you are suppressing distracting waves and enhancing focus waves within the target zone.
+                </div>
               </h4>
               <NeurofeedbackBar nf={live.neurofeedback} />
             </div>
@@ -402,9 +452,12 @@ export default function Research() {
 
           {/* Lobe Summary */}
           <div className="bg-white border border-slate-200 rounded-2xl p-6">
-            <h3 className="font-bold text-slate-900 flex items-center gap-2 mb-4">
+            <h3 className="font-bold text-slate-900 flex items-center gap-2 mb-4 group cursor-help relative w-fit">
               <Cpu className="w-4 h-4 text-cyan-400" />
               Lobe Activation Map
+              <div className="absolute left-0 top-full mt-2 w-64 p-3 bg-slate-900 text-white text-[10px] font-medium leading-tight rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+                Breaks down Alpha and Beta wave distribution across the Frontal, Parietal, Temporal, and Occipital lobes of the brain.
+              </div>
             </h3>
             <div className="flex gap-4 text-[9px] text-slate-600 mb-3 font-bold uppercase tracking-widest">
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-indigo-400 inline-block" />Alpha</span>
@@ -419,14 +472,17 @@ export default function Research() {
             {/* Global Indices */}
             <div className="mt-5 pt-4 border-t border-slate-200 grid grid-cols-2 gap-3">
               {[
-                { label: "Attention Index",  val: live.global_indices?.attention_index,   color: "text-indigo-400" },
-                { label: "Theta/Beta Ratio", val: live.global_indices?.theta_beta_ratio,  color: "text-red-400"    },
-                { label: "Engagement",       val: live.global_indices?.engagement_index,  color: "text-emerald-400" },
-                { label: "Frontal Asym.",    val: live.global_indices?.frontal_alpha_asymmetry, color: "text-amber-400" },
+                { label: "Attention Index",  val: live.global_indices?.attention_index,   color: "text-indigo-400", desc: "Overall focus capability." },
+                { label: "Theta/Beta Ratio", val: live.global_indices?.theta_beta_ratio,  color: "text-red-400", desc: "Core ADHD diagnostic metric. Lower is better."    },
+                { label: "Engagement",       val: live.global_indices?.engagement_index,  color: "text-emerald-400", desc: "Active task immersion." },
+                { label: "Frontal Asym.",    val: live.global_indices?.frontal_alpha_asymmetry, color: "text-amber-400", desc: "Mood indicator based on left vs right frontal lobes." },
               ].map(m => (
-                <div key={m.label} className="bg-slate-50 rounded-xl p-3 border border-slate-300">
+                <div key={m.label} className="bg-slate-50 rounded-xl p-3 border border-slate-300 relative group cursor-help">
                   <div className="text-[9px] text-slate-600 uppercase tracking-widest mb-1">{m.label}</div>
                   <div className={`text-lg font-black ${m.color}`}>{(m.val ?? 0).toFixed(3)}</div>
+                  <div className="absolute left-0 top-full mt-2 w-48 p-2 bg-slate-900 text-white text-[10px] font-medium leading-tight rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+                    {m.desc}
+                  </div>
                 </div>
               ))}
             </div>
@@ -479,11 +535,11 @@ export default function Research() {
                 <div className="bg-slate-50 rounded-xl p-3 border border-slate-300">
                   <div className="text-[9px] text-slate-600 uppercase tracking-widest mb-2">ICA Artifact Summary</div>
                   <div className="flex flex-wrap gap-2">
-                    {live.research_report.ica_summary?.artifacts_detected?.map(a => (
-                      <span key={a} className="text-[10px] px-2 py-0.5 bg-red-50/20 text-red-400 rounded font-bold">{a}</span>
+                    {live.research_report.ica_summary?.artifacts_detected?.map((a, i) => (
+                      <span key={`art-${a}-${i}`} className="text-[10px] px-2 py-0.5 bg-red-50/20 text-red-400 rounded font-bold">{a}</span>
                     ))}
-                    {live.research_report.ica_summary?.neural_components?.map(a => (
-                      <span key={a} className="text-[10px] px-2 py-0.5 bg-indigo-50/20 text-indigo-400 rounded font-bold">{a}</span>
+                    {live.research_report.ica_summary?.neural_components?.map((a, i) => (
+                      <span key={`neur-${a}-${i}`} className="text-[10px] px-2 py-0.5 bg-indigo-50/20 text-indigo-400 rounded font-bold">{a}</span>
                     ))}
                   </div>
                 </div>

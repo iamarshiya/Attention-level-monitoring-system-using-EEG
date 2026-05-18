@@ -32,9 +32,12 @@ async def predict_cognitive_state(payload: PredictPayload):
 
     # 2. Extract Features
     psd_features = feature_extractor.extract_metrics(clean_signal)
+    
+    # 2.5 Extract STFT 2D Spectrogram for Convolutional Neural Network processing
+    stft_2d = feature_extractor.extract_stft2d(clean_signal)
 
-    # 3. Predict via Model Architecture
-    prediction = model_instance.predict(psd_features)
+    # 3. Predict via Model Architecture (handles either CNN or Random Forest automatically)
+    prediction = model_instance.predict(psd_features, stft_2d=stft_2d)
 
     # 4. Prepare Store Document
     record = {
