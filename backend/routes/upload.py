@@ -21,6 +21,7 @@ async def upload_eeg_file(request: Request, file: UploadFile = File(...)):
 
         # Persist dataframe inside application state so WebSockets can stream it directly!
         request.app.state.uploaded_df = df
+        request.app.state.uploaded_filename = file.filename
         request.app.state.stream_index = 0
 
         return {
