@@ -178,16 +178,12 @@ export default function Analytics() {
   const modelBars = [
     { model: "SVM", accuracy: model_comparison.SVM ?? 84, color: "#06b6d4", tip: TIPS.svm },
     { model: "Random Forest", accuracy: model_comparison.RF ?? 89, color: "#6366f1", tip: TIPS.rf },
-    { model: "CNN", accuracy: model_comparison.CNN ?? 93, color: "#a855f7", tip: TIPS.cnn },
   ];
+
+  const bestModel = modelBars.reduce((prev, current) => (prev.accuracy > current.accuracy) ? prev : current, modelBars[0]);
 
   /* Insight bullets — dynamic based on live data */
   const insights = [
-    {
-      color: "#a855f7",
-      title: `CNN is the strongest model at ${model_comparison.CNN ?? 93}%`,
-      body: "2D-STFT spectrogram CNN captures spatial-temporal EEG patterns that flat band-power features miss. It outperforms SVM and RF consistently across subjects.",
-    },
     {
       color: "#eab308",
       title: `Θ/β ratio ${avgRatio} → ${ratioLabel} attentional state`,
@@ -329,7 +325,7 @@ export default function Analytics() {
 
         {/* Model accuracy bars with individual tooltips */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className={CARD}>
-          <Hdr icon={BarChart2} title="Model Accuracy Benchmark" sub="Computed on held-out test split — no artificial floors" badge={`Best: CNN ${model_comparison.CNN ?? 93}%`} />
+          <Hdr icon={BarChart2} title="Model Accuracy Benchmark" sub="Computed on held-out test split — no artificial floors" badge={bestModel ? `Best: ${bestModel.model === "Random Forest" ? "RF" : bestModel.model} ${bestModel.accuracy}%` : undefined} />
           <div className="space-y-5 mt-2">
             {modelBars.map(m => (
               <div key={m.model}>

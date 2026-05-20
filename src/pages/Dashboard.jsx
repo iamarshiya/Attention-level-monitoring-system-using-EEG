@@ -90,9 +90,7 @@ export default function Dashboard() {
                           <Info className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                        </h3>
                        <div className="flex gap-2">
-                           {metrics && metrics.CNN > 0 && (
-                             <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded uppercase tracking-tighter cursor-help border border-purple-200 shadow-sm" title="Deep Learning CNN Accuracy (Trained on STFT 2D)">CNN {metrics.CNN}%</span>
-                           )}
+
                            <span className="text-[10px] font-bold bg-blue-50 text-blue-600 px-2 py-0.5 rounded uppercase tracking-tighter border border-blue-100 shadow-sm cursor-help" title="Random Forest Accuracy (Active Ensemble)">RF {metrics ? metrics.RF : 95}%</span>
                            <span className="text-[10px] font-bold bg-slate-50 text-slate-500 px-2 py-0.5 rounded uppercase tracking-tighter border border-slate-200 shadow-sm hidden sm:inline-block cursor-help" title="Support Vector Machine (Baseline)">SVM {metrics ? metrics.SVM : 91}%</span>
                        </div>
